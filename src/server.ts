@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import { getUsers, userJoin, userLeave } from "./util/user";
 
 const app = express();
 
@@ -16,7 +17,20 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("client connected");
+  socket.join("myChat");
+
+  socket.on("handle-connection", (username: string) => {
+    if (!userJoin(socket.id, username)) {
+      socket.emit("username-taken");
+    } else {
+      socket.emit("username-submitted-successfully");
+      io.to("myChat").emit("get-connected-users", getUsers());
+    }
+  });
+
+  socket.on("disconnect", () => {
+    userLeave(socket.id);
+  });
 });
 
 server.listen(3002, () => console.log("server started on port 3002"));
