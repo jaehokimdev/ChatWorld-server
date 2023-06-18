@@ -28,6 +28,10 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("message", (message: { message: string; username: string }) => {
+    socket.broadcast.to("myChat").emit("receive-message");
+  });
+
   socket.on("disconnect", () => {
     userLeave(socket.id);
   });
